@@ -19,14 +19,14 @@ spring:
         options:
           model: embedding-3  # 使用的嵌入模型名称（embedding-3）
           dimensions: 256  # 嵌入向量的维度（256维）
-#    mcp:
-#      client:
-#        sse:
-#          connections:
-#            server1:
-#              url: http://localhost:8080 # mcp服务url
-#            fetcher-mcp:
-#              url: http://192.168.31.216:3000
+    mcp:
+      client:
+        sse:
+          connections:
+            my-mcp:
+              url: http://localhost:8082 # mcp服务url
+            fetcher-mcp:
+              url: http://localhost:3000
     # 向量存储配置
     vectorstore:
       redis:

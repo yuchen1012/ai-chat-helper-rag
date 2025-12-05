@@ -1,7 +1,6 @@
 package com.ai.helper.controllers;
 
 import com.ai.helper.advisors.LogAdvisor;
-import com.ai.helper.tools.TimeTool;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -9,6 +8,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.ClassPathResource;
@@ -27,7 +27,7 @@ public class CoffeeController {
   private final VectorStore vectorStore;
   private final ChatClient chatClient;
 
-  public CoffeeController(VectorStore vectorStore, ChatClient.Builder builder) {
+  public CoffeeController(VectorStore vectorStore, ChatClient.Builder builder, ToolCallbackProvider provider) {
     this.vectorStore = vectorStore;
     VectorStoreDocumentRetriever documentRetriever = VectorStoreDocumentRetriever.builder()
       .vectorStore(vectorStore)
@@ -40,7 +40,8 @@ public class CoffeeController {
     this.chatClient = builder
       .defaultAdvisors(retrievalAugmentationAdvisor)
       .defaultAdvisors(new LogAdvisor())
-      .defaultTools(new TimeTool())
+      .defaultToolCallbacks(provider.getToolCallbacks())
+//      .defaultTools(new TimeTool())
       .build();
   }
 
@@ -91,6 +92,14 @@ public class CoffeeController {
   public String askWithRag(@RequestParam("query") String query) {
     return chatClient.prompt()
       .system("你是咖啡店的服务员，你需要回答客户的问题。遇到时间相关的问题，可以使用工具来获取当前时间。")
+      .user(query)
+      .call().content();
+  }
+
+  @GetMapping("/fetcher-ask")
+  public String askWithFetcher(@RequestParam("query") String query) {
+    return chatClient.prompt()
+      .system("你是一个网页爬取专家，你可以运用工具爬取指定网页的内容并进行总结。")
       .user(query)
       .call().content();
   }
